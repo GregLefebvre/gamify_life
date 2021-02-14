@@ -1,0 +1,27 @@
+{
+    "info": {
+        "date": "2021-01-27"
+    },
+    "tasks": [
+        {
+            "infos": {
+                "title": "ohyc wkdrc",
+                "content": "",
+                "category": "z"
+            },
+            "stats": {
+                "done": false
+            }
+        },
+        {
+            "infos": {
+                "title": "myebc wkdrc",
+                "content": "",
+                "category": "z"
+            },
+            "stats": {
+                "done": true
+            }
+        }
+    ]
+}

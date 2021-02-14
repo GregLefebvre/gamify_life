@@ -1,0 +1,47 @@
+{
+    "info": {
+        "date": "2021-01-24"
+    },
+    "tasks": [
+        {
+            "infos": {
+                "title": "ohyc wkdrc",
+                "content": "5k, 30, 28, 25",
+                "category": "z"
+            },
+            "stats": {
+                "done": false
+            }
+        },
+        {
+            "infos": {
+                "title": "myebc wkdrc",
+                "content": "",
+                "category": "z"
+            },
+            "stats": {
+                "done": false
+            }
+        },
+        {
+            "infos": {
+                "title": "myebc ovom",
+                "content": "",
+                "category": "z"
+            },
+            "stats": {
+                "done": false
+            }
+        },
+        {
+            "infos": {
+                "title": "fymk kxqvksc",
+                "content": "",
+                "category": "z"
+            },
+            "stats": {
+                "done": false
+            }
+        }
+    ]
+}
