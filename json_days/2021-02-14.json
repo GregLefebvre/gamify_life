@@ -1,7 +1,7 @@
 {
     "info": {
         "date": "2021-02-14",
-        "fails": 1
+        "fails": 2
     },
     "tasks": [
         {
@@ -69,9 +69,9 @@
                 "repetition": true
             },
             "stats": {
-                "done": false,
-                "minutes": 0,
-                "streaks": 0
+                "done": true,
+                "minutes": 3,
+                "streaks": 1
             }
         },
         {
@@ -80,6 +80,90 @@
                 "title": "exsaeo sn cicdow",
                 "content": "",
                 "category": "zbyqbkwwkdsyx",
+                "repetition": false
+            },
+            "stats": {
+                "done": true,
+                "minutes": 0,
+                "streaks": 0
+            }
+        },
+        {
+            "infos": {
+                "id": 6,
+                "title": "docd",
+                "content": "",
+                "category": "wkdr\u00e9wkdsaeoc",
+                "repetition": false
+            },
+            "stats": {
+                "done": true,
+                "minutes": 0,
+                "streaks": 0
+            }
+        },
+        {
+            "infos": {
+                "id": 7,
+                "title": "dnc",
+                "content": "",
+                "category": "cmsoxmo no v'sxq\u00e9xsoeb",
+                "repetition": false
+            },
+            "stats": {
+                "done": false,
+                "minutes": 0,
+                "streaks": 0
+            }
+        },
+        {
+            "infos": {
+                "id": 8,
+                "title": "nw",
+                "content": "",
+                "category": "wkdr\u00e9wkdsaeoc",
+                "repetition": false
+            },
+            "stats": {
+                "done": false,
+                "minutes": 53,
+                "streaks": 0
+            }
+        },
+        {
+            "infos": {
+                "id": 9,
+                "title": "ohyc [2m]",
+                "content": "",
+                "category": "wkdr\u00e9wkdsaeoc",
+                "repetition": false
+            },
+            "stats": {
+                "done": false,
+                "minutes": 0,
+                "streaks": 0
+            }
+        },
+        {
+            "infos": {
+                "id": 10,
+                "title": "ohyc [2o]",
+                "content": "",
+                "category": "wkdr\u00e9wkdsaeoc",
+                "repetition": false
+            },
+            "stats": {
+                "done": false,
+                "minutes": 0,
+                "streaks": 0
+            }
+        },
+        {
+            "infos": {
+                "id": 11,
+                "title": "ohyc [2p]",
+                "content": "",
+                "category": "wkdr\u00e9wkdsaeoc",
                 "repetition": false
             },
             "stats": {

@@ -167,7 +167,7 @@ class SampleApp(tk.Tk):
         self.citation_font = tkfont.Font(family='Arial', size=18, weight="bold")
 
         l1 = str(int(pyautogui.size()[1]*0.7))
-        l0 = str(int(pyautogui.size()[0]*0.5))
+        l0 = str(int(pyautogui.size()[0]*0.8))
         self.geometry(l0+'x'+l1+'+0+0')
         self.title("Gamify your life")
         # the container is where we'll stack a bunch of frames
@@ -201,7 +201,6 @@ class SampleApp(tk.Tk):
             if " " in site:
                 for sep in separators:
                     self.forbidden_websites.append(site.replace(" ", sep))
-        print(self.forbidden_websites)
         self.active_win_title, self.active_win_data = get_active_window()
         self.execute_task()
 
@@ -306,8 +305,9 @@ class SampleApp(tk.Tk):
             self.frames["DailyPage"].reload_tasks()
             self.today = str(datetime.date.today())
         if self.frames["TaskPage"].pom_status != "break":
+            date_of_the_week = datetime.datetime.now().strftime("%A").lower()
             active_win_title, active_win_data = get_active_window()
-            if (active_win_data != self.active_win_data):
+            if (active_win_data != self.active_win_data) and (date_of_the_week not in ["saturday"]):
                 self.active_win_data = active_win_data
                 self.action_app_based(active_win_title, active_win_data)
             # if self.current_frame != "BreakPage":
@@ -388,6 +388,16 @@ class DailyPage(tk.Frame):
         frame_right_title.grid(row=0, column=0, sticky="nsew")
         frame_right_add.grid(row=2, column=0, sticky="nsew")
 
+        self.frame_right_tasks = tk.Frame(self.frame_right,relief=tk.GROOVE,borderwidth=2)
+        self.frame_right_tasks.grid(row=1, column=0, sticky="nsew")
+        self.frame_right_tasks.rowconfigure(0, weight=1)
+        self.frame_right_tasks.columnconfigure([0, 1], weight=1)
+        # self.frame_right_tasks_to_do = tk.Frame(self.frame_right_tasks,relief=tk.GROOVE,borderwidth=2)
+        # self.frame_right_tasks_done = tk.Frame(self.frame_right_tasks,relief=tk.GROOVE,borderwidth=2)
+        # self.frame_right_tasks_to_do.grid(row=0, column=0, sticky="nsew")
+        # self.frame_right_tasks_done.grid(row=0, column=1, sticky="nsew")
+
+
         #inside of frame_right_title
         frame_right_title.columnconfigure(0, weight=1)
         frame_right_title.rowconfigure(0, weight=1)
@@ -439,46 +449,74 @@ class DailyPage(tk.Frame):
             if (not task["stats"]["done"]) or (task["infos"]["repetition"]):
                 self.controller.save_task(task["infos"]["title"], task["infos"]["content"], task["infos"]["category"], "today", task["infos"]["repetition"], task["infos"]["streaks"])
 
+    def destroy_previous_scroll(self):
+        children = self.frame_right_tasks.winfo_children()
+        for wid in children:
+            wid.destroy()
+
     def reload_tasks(self):
         full_date = ""+datetime.datetime.now().strftime("%A %d %B %Y")
         self.date_string.set(full_date)
-        self.frame_right_tasks = ScrollableFrame(self.frame_right)
-        self.frame_right_tasks.grid(row=1, column=0, sticky="nsew")
+        self.destroy_previous_scroll()
+        self.frame_right_tasks_done = ScrollableFrame(self.frame_right_tasks)
+        self.frame_right_tasks_done.grid(row=0, column=1, sticky="nsew")
+        self.frame_right_tasks_to_do = ScrollableFrame(self.frame_right_tasks)
+        self.frame_right_tasks_to_do.grid(row=0, column=0, sticky="nsew")
         self.daily_tasks = get_daily_tasks()
         self.daily_tasks.reverse()
         if len(self.daily_tasks) == 0:
-            label_task = tk.Label(self.frame_right_tasks.scrollable_frame, text="no tasks for today")
+            label_task = tk.Label(self.frame_right_tasks_to_do.scrollable_frame, text="no tasks for today")
             label_task.grid(row=0, column=0, sticky="nsew")
         else:
-            tasks_by_categories = dict()
+            tasks_by_categories = {
+                "to_do": dict(),
+                "done": dict()
+            }
+            #sep
+            frame_sep = tk.Frame(self.frame_right_tasks_to_do.scrollable_frame,
+                                    relief=tk.SOLID,borderwidth=1, bg="#FDCE2A",
+                                    padx=10, pady=10)
+            frame_sep.grid(sticky="nsew")
+            frame_sep.columnconfigure(0, weight=1)
+            frame_sep.rowconfigure(0, weight=1)
+            label_cat = tk.Label(frame_sep, text="TO DO", font=self.controller.subtitle_font,bg="#FDCE2A")
+            label_cat.grid(row=0, column=0, sticky="nsew")
+
+            frame_sep2 = tk.Frame(self.frame_right_tasks_done.scrollable_frame,
+                                    relief=tk.SOLID,borderwidth=1, bg="#03C04A",
+                                    padx=10, pady=10)
+            frame_sep2.grid(sticky="nsew")
+            frame_sep2.columnconfigure(0, weight=1)
+            frame_sep2.rowconfigure(0, weight=1)
+            label_cat2 = tk.Label(frame_sep2, text="DONE", font=self.controller.subtitle_font,bg="#03C04A")
+            label_cat2.grid(row=0, column=0, sticky="nsew")
+
             for i in range(len(self.daily_tasks)):
                 cat = self.daily_tasks[i]["infos"]["category"]
-                if not cat in tasks_by_categories:
-                    tasks_by_categories[cat] = list()
-                tasks_by_categories[cat].append(self.daily_tasks[i])
+                if self.daily_tasks[i]["stats"]["done"]:
+                    if not cat in tasks_by_categories["done"]:
+                        tasks_by_categories["done"][cat] = list()
+                    tasks_by_categories["done"][cat].append(self.daily_tasks[i])
+                else:
+                    if not cat in tasks_by_categories["to_do"]:
+                        tasks_by_categories["to_do"][cat] = list()
+                    tasks_by_categories["to_do"][cat].append(self.daily_tasks[i])
 
-            for cat in tasks_by_categories:
-                done_tasks = list()
-                to_do_tasks = list()
-                for i in range(len(tasks_by_categories[cat])):
-                    t = tasks_by_categories[cat][i]
-                    if t["stats"]["done"]:
-                        done_tasks.append(t)
-                    else:
-                        to_do_tasks.append(t)
-                tasks_by_categories[cat] = to_do_tasks+done_tasks
-                frame_sep = tk.Frame(self.frame_right_tasks.scrollable_frame,
-                                        relief=tk.SOLID,borderwidth=1, bg="#C0C0C0",
+            # tasks_by_categories["to_do"] = sorted(tasks_by_categories["to_do"].keys(), key=lambda x:x.lower())
+            # tasks_by_categories["done"] = sorted(tasks_by_categories["done"].keys(), key=lambda x:x.lower())
+            for cat in tasks_by_categories["to_do"]:
+                frame_sep = tk.Frame(self.frame_right_tasks_to_do.scrollable_frame,
+                                        relief=tk.SOLID, borderwidth=1, bg="#DDDDDD",
                                         padx=10, pady=10)
                 frame_sep.grid(sticky="nsew")
                 frame_sep.columnconfigure(0, weight=1)
                 frame_sep.rowconfigure(0, weight=1)
-                string = cat.upper()
-                label_cat = tk.Label(frame_sep, text=decode_cesar(string, 10), font=self.controller.subtitle_font,bg="#C0C0C0")
+                string = cat.capitalize()
+                label_cat = tk.Label(frame_sep, text=decode_cesar(string, 10), font=self.controller.subtitle_font,bg="#DDDDDD")
                 label_cat.grid(row=0, column=0, sticky="nsew")
-                for i in range(len(tasks_by_categories[cat])):
-                    t = tasks_by_categories[cat][i]
-                    frame_task = tk.Frame(self.frame_right_tasks.scrollable_frame,
+                for i in range(len(tasks_by_categories["to_do"][cat])):
+                    t = tasks_by_categories["to_do"][cat][i]
+                    frame_task = tk.Frame(self.frame_right_tasks_to_do.scrollable_frame,
                                             relief=tk.SOLID,borderwidth=1,
                                             bg="#FFFFFF",
                                             padx=20, pady=10)
@@ -493,7 +531,7 @@ class DailyPage(tk.Frame):
                     if t["infos"]["content"] != "":
                         substr = " ("+t["infos"]["content"]+")"
                     if t["infos"]["repetition"]:
-                        substr += " (daily ["+str(t["stats"]["streaks"])+"✅])"
+                        substr += " (daily ["+str(t["stats"]["streaks"])+"])"
                     if int(t["stats"]["minutes"]) > 0:
                         time_spent = readable_times(0, int(t["stats"]["minutes"]), 0)
                         substr+=" ("+time_spent+")"
@@ -501,14 +539,50 @@ class DailyPage(tk.Frame):
                     string = t["infos"]["title"].upper()+substr
                     label_task = tk.Label(frame_task, text=string, bg="#FFFFFF")
                     label_task.grid(row=0, column=0, sticky="nsw")
-                    if not t["stats"]["done"]:
-                        btn_task= tk.Button(frame_task, text=btn_text,
-                                            command=lambda t=t: self.view_task(t),
-                                            bg="#FDCE2A")
-                        btn_task.grid(row=0, column=1, sticky="nse")
-                    else:
-                        label_done = tk.Label(frame_task, text="done!", fg="black", bg="#03C04A")
-                        label_done.grid(row=0, column=1, sticky="nse")
+                    btn_task= tk.Button(frame_task, text=btn_text,
+                                        command=lambda t=t: self.view_task(t),
+                                        bg="#FDCE2A")
+                    btn_task.grid(row=0, column=1, sticky="nse")
+
+
+            for cat in tasks_by_categories["done"]:
+                frame_sep = tk.Frame(self.frame_right_tasks_done.scrollable_frame,
+                                        relief=tk.SOLID,borderwidth=1, bg="#DDDDDD",
+                                        padx=10, pady=10)
+                frame_sep.grid(sticky="nsew")
+                frame_sep.columnconfigure(0, weight=1)
+                frame_sep.rowconfigure(0, weight=1)
+                string = cat.capitalize()
+                label_cat = tk.Label(frame_sep, text=decode_cesar(string, 10), font=self.controller.subtitle_font,bg="#DDDDDD")
+                label_cat.grid(row=0, column=0, sticky="nsew")
+                for i in range(len(tasks_by_categories["done"][cat])):
+                    t = tasks_by_categories["done"][cat][i]
+                    frame_task = tk.Frame(self.frame_right_tasks_done.scrollable_frame,
+                                            relief=tk.SOLID,borderwidth=1,
+                                            bg="#FFFFFF",
+                                            padx=20, pady=10)
+                    frame_task.grid(sticky="nsew")
+                    frame_task.columnconfigure(0, weight=3)
+                    frame_task.columnconfigure(1, weight=1)
+                    frame_task.rowconfigure(0, weight=1)
+                    substr = ""
+                    btn_text = "start"
+                    t["infos"]["content"] = decode_cesar(t["infos"]["content"], 10)
+                    t["infos"]["title"] = decode_cesar(t["infos"]["title"], 10)
+                    if t["infos"]["content"] != "":
+                        substr = " ("+t["infos"]["content"]+")"
+                    if t["infos"]["repetition"]:
+                        substr += " (daily ["+str(t["stats"]["streaks"])+"])"
+                    if int(t["stats"]["minutes"]) > 0:
+                        time_spent = readable_times(0, int(t["stats"]["minutes"]), 0)
+                        substr+=" ("+time_spent+")"
+                        btn_text = "pursue"
+                    string = t["infos"]["title"].upper()+substr
+                    label_task = tk.Label(frame_task, text=string, bg="#FFFFFF")
+                    label_task.grid(row=0, column=0, sticky="nsw")
+                    label_done = tk.Label(frame_task, text="done!", fg="black", bg="#03C04A")
+                    label_done.grid(row=0, column=1, sticky="nse")
+
 
     def view_task(self, task):
         self.controller.show_frame("TaskPage")
@@ -661,7 +735,7 @@ class TaskPage(tk.Frame):
             with open(file_path, 'r') as f:
                 day_tasks = json.load(f)
             for task in day_tasks["tasks"]:
-                if (task["infos"]["title"] == self.task["infos"]["title"]) and (task["infos"]["content"] == self.task["infos"]["content"]):
+                if task["infos"]["id"] == self.task_id:
                     task["stats"]["minutes"] = int(task["stats"]["minutes"])+minutes
             with open(file_path, 'w+') as outfile:
                 json.dump(day_tasks, outfile, indent=4)
@@ -673,7 +747,7 @@ class TaskPage(tk.Frame):
         self.begin_time = time.time()
         self.task = task
         self.task_id = task["infos"]["id"]
-        string = task["infos"]["category"]+" : "+task["infos"]["title"]
+        string = decode_cesar(task["infos"]["category"],10)+" : "+task["infos"]["title"]
         if task["infos"]["repetition"]:
             string += " (daily)"
         self.title = tk.Label(self.frame_title, text=string.upper(), font=self.controller.title_font)
@@ -850,7 +924,7 @@ class StatsPage(tk.Frame):
             if "repetition" in t["infos"]:
                 if t["infos"]["repetition"]:
                     # i += 1
-                    task_habits_title.append(t["infos"]["title"])
+                    task_habits_title.append(decode_cesar(t["infos"]["title"], 10))
                     task_habits_days.append(t["stats"]["streaks"])
                     # if t["stats"]["done"]:
                     #     task_habits_days[i]+=1
