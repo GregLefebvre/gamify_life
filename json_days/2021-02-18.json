@@ -1,58 +1,47 @@
 {
     "info": {
-        "date": "2021-02-14",
+        "date": "2021-02-18",
         "fails": 2
     },
     "tasks": [
         {
             "infos": {
                 "id": 0,
-                "title": "myebc",
+                "title": "nw",
                 "content": "",
                 "category": "wkdr\u00e9wkdsaeoc",
-                "repetition": true
+                "repetition": false,
+                "allow_browser": false
             },
             "stats": {
                 "done": true,
-                "minutes": 10,
-                "streaks": 1
+                "minutes": 138,
+                "streaks": 0
             }
         },
         {
             "infos": {
                 "id": 1,
-                "title": "10 zywzoc ke b\u00e9fosv",
+                "title": "bkxqob voc poesvvoc fyvkxdoc",
                 "content": "",
-                "category": "czybd",
-                "repetition": true
+                "category": "kedboc",
+                "repetition": true,
+                "allow_browser": false
             },
             "stats": {
                 "done": true,
-                "minutes": 0,
-                "streaks": 9
+                "minutes": 2,
+                "streaks": 5
             }
         },
         {
             "infos": {
                 "id": 2,
-                "title": "nyemro pbysno",
-                "content": "",
-                "category": "kedboc",
-                "repetition": true
-            },
-            "stats": {
-                "done": true,
-                "minutes": 0,
-                "streaks": 8
-            }
-        },
-        {
-            "infos": {
-                "id": 3,
                 "title": "mknoke vw",
                 "content": "",
                 "category": "kedboc",
-                "repetition": false
+                "repetition": false,
+                "allow_browser": false
             },
             "stats": {
                 "done": false,
@@ -62,56 +51,75 @@
         },
         {
             "infos": {
-                "id": 4,
-                "title": "bkxqob voc poesvvoc fyvkxdoc",
+                "id": 3,
+                "title": "nyemro pbysno",
                 "content": "",
                 "category": "kedboc",
-                "repetition": true
+                "repetition": true,
+                "allow_browser": false
             },
             "stats": {
                 "done": true,
-                "minutes": 3,
-                "streaks": 1
+                "minutes": 0,
+                "streaks": 12
+            }
+        },
+        {
+            "infos": {
+                "id": 4,
+                "title": "10 zywzoc ke b\u00e9fosv",
+                "content": "",
+                "category": "czybd",
+                "repetition": true,
+                "allow_browser": false
+            },
+            "stats": {
+                "done": true,
+                "minutes": 0,
+                "streaks": 13
             }
         },
         {
             "infos": {
                 "id": 5,
-                "title": "exsaeo sn cicdow",
+                "title": "myebc",
                 "content": "",
-                "category": "zbyqbkwwkdsyx",
-                "repetition": false
+                "category": "wkdr\u00e9wkdsaeoc",
+                "repetition": true,
+                "allow_browser": false
             },
             "stats": {
                 "done": true,
-                "minutes": 0,
-                "streaks": 0
+                "minutes": 8,
+                "streaks": 5
             }
         },
         {
             "infos": {
                 "id": 6,
-                "title": "docd",
+                "title": " ohyc [10]",
                 "content": "",
                 "category": "wkdr\u00e9wkdsaeoc",
-                "repetition": false
+                "repetition": false,
+                "allow_browser": false
             },
             "stats": {
                 "done": true,
-                "minutes": 0,
+                "minutes": 14,
                 "streaks": 0
             }
         },
         {
             "infos": {
                 "id": 7,
-                "title": "dnc",
+                "title": " ohyc [30]",
                 "content": "",
-                "category": "cmsoxmo no v'sxq\u00e9xsoeb",
-                "repetition": false
+                "category": "wkdr\u00e9wkdsaeoc",
+                "repetition": false,
+                "allow_browser": false
             },
             "stats": {
-                "done": false,
+                "done": true,
                 "minutes": 0,
                 "streaks": 0
             }
@@ -119,56 +127,30 @@
         {
             "infos": {
                 "id": 8,
-                "title": "nw",
+                "title": " ohyc [23]",
                 "content": "",
                 "category": "wkdr\u00e9wkdsaeoc",
-                "repetition": false
+                "repetition": false,
+                "allow_browser": false
             },
             "stats": {
-                "done": false,
-                "minutes": 53,
+                "done": true,
+                "minutes": 0,
                 "streaks": 0
             }
         },
         {
             "infos": {
                 "id": 9,
-                "title": "ohyc [2m]",
+                "title": "myvvo",
                 "content": "",
                 "category": "wkdr\u00e9wkdsaeoc",
-                "repetition": false
+                "repetition": false,
+                "allow_browser": false
             },
             "stats": {
-                "done": true,
-                "minutes": 5,
-                "streaks": 0
-            }
-        },
-        {
-            "infos": {
-                "id": 10,
-                "title": "ohyc [2o]",
-                "content": "",
-                "category": "wkdr\u00e9wkdsaeoc",
-                "repetition": false
-            },
-            "stats": {
-                "done": true,
-                "minutes": 19,
-                "streaks": 0
-            }
-        },
-        {
-            "infos": {
-                "id": 11,
-                "title": "ohyc [2p]",
-                "content": "",
-                "category": "wkdr\u00e9wkdsaeoc",
-                "repetition": false
-            },
-            "stats": {
-                "done": true,
-                "minutes": 35,
+                "done": false,
+                "minutes": 0,
                 "streaks": 0
             }
         }

@@ -1,7 +1,7 @@
 {
     "info": {
-        "date": "2021-02-14",
-        "fails": 2
+        "date": "2021-02-15",
+        "fails": 9
     },
     "tasks": [
         {
@@ -14,8 +14,8 @@
             },
             "stats": {
                 "done": true,
-                "minutes": 10,
-                "streaks": 1
+                "minutes": 68,
+                "streaks": 2
             }
         },
         {
@@ -29,7 +29,7 @@
             "stats": {
                 "done": true,
                 "minutes": 0,
-                "streaks": 9
+                "streaks": 10
             }
         },
         {
@@ -43,7 +43,7 @@
             "stats": {
                 "done": true,
                 "minutes": 0,
-                "streaks": 8
+                "streaks": 9
             }
         },
         {
@@ -70,55 +70,27 @@
             },
             "stats": {
                 "done": true,
-                "minutes": 3,
-                "streaks": 1
+                "minutes": 0,
+                "streaks": 2
             }
         },
         {
             "infos": {
                 "id": 5,
-                "title": "exsaeo sn cicdow",
-                "content": "",
-                "category": "zbyqbkwwkdsyx",
-                "repetition": false
-            },
-            "stats": {
-                "done": true,
-                "minutes": 0,
-                "streaks": 0
-            }
-        },
-        {
-            "infos": {
-                "id": 6,
-                "title": "docd",
-                "content": "",
-                "category": "wkdr\u00e9wkdsaeoc",
-                "repetition": false
-            },
-            "stats": {
-                "done": true,
-                "minutes": 0,
-                "streaks": 0
-            }
-        },
-        {
-            "infos": {
-                "id": 7,
                 "title": "dnc",
                 "content": "",
                 "category": "cmsoxmo no v'sxq\u00e9xsoeb",
                 "repetition": false
             },
             "stats": {
-                "done": false,
-                "minutes": 0,
+                "done": true,
+                "minutes": 53,
                 "streaks": 0
             }
         },
         {
             "infos": {
-                "id": 8,
+                "id": 6,
                 "title": "nw",
                 "content": "",
                 "category": "wkdr\u00e9wkdsaeoc",
@@ -126,49 +98,135 @@
             },
             "stats": {
                 "done": false,
-                "minutes": 53,
+                "minutes": 0,
+                "streaks": 0
+            }
+        },
+        {
+            "infos": {
+                "id": 7,
+                "title": "dbknemdsyxc",
+                "content": "",
+                "category": "kxqvksc",
+                "repetition": false
+            },
+            "stats": {
+                "done": true,
+                "minutes": 13,
+                "streaks": 0
+            }
+        },
+        {
+            "infos": {
+                "id": 8,
+                "title": "fymk",
+                "content": "58/60",
+                "category": "kxqvksc",
+                "repetition": false
+            },
+            "stats": {
+                "done": false,
+                "minutes": 8,
                 "streaks": 0
             }
         },
         {
             "infos": {
                 "id": 9,
-                "title": "ohyc [2m]",
+                "title": "ohobmsmo [1]",
                 "content": "",
                 "category": "wkdr\u00e9wkdsaeoc",
                 "repetition": false
             },
             "stats": {
                 "done": true,
-                "minutes": 5,
+                "minutes": 14,
                 "streaks": 0
             }
         },
         {
             "infos": {
                 "id": 10,
-                "title": "ohyc [2o]",
+                "title": "ohobmsmo [2]",
                 "content": "",
                 "category": "wkdr\u00e9wkdsaeoc",
                 "repetition": false
             },
             "stats": {
                 "done": true,
-                "minutes": 19,
+                "minutes": 10,
                 "streaks": 0
             }
         },
         {
             "infos": {
                 "id": 11,
-                "title": "ohyc [2p]",
+                "title": "ohobmsmo [3]",
                 "content": "",
                 "category": "wkdr\u00e9wkdsaeoc",
                 "repetition": false
             },
             "stats": {
                 "done": true,
-                "minutes": 35,
+                "minutes": 12,
+                "streaks": 0
+            }
+        },
+        {
+            "infos": {
+                "id": 12,
+                "title": "ohobmsmo [12]",
+                "content": "",
+                "category": "wkdr\u00e9wkdsaeoc",
+                "repetition": false
+            },
+            "stats": {
+                "done": true,
+                "minutes": 0,
+                "streaks": 0
+            }
+        },
+        {
+            "infos": {
+                "id": 13,
+                "title": "kzzboxnbo xewzi",
+                "content": "",
+                "category": "sxpybwkdsaeo zyeb dyec",
+                "repetition": false
+            },
+            "stats": {
+                "done": false,
+                "minutes": 0,
+                "streaks": 0
+            }
+        },
+        {
+            "infos": {
+                "id": 14,
+                "title": "docd gsdr lbygcob",
+                "content": "",
+                "category": "zbyqbkwwkdsyx",
+                "repetition": false,
+                "allow_browser": true
+            },
+            "stats": {
+                "done": true,
+                "minutes": 0,
+                "streaks": 0
+            }
+        },
+        {
+            "infos": {
+                "id": 15,
+                "title": "docd gsdryed lbygcob",
+                "content": "",
+                "category": "zbyqbkwwkdsyx",
+                "repetition": false,
+                "allow_browser": false
+            },
+            "stats": {
+                "done": true,
+                "minutes": 0,
                 "streaks": 0
             }
         }
