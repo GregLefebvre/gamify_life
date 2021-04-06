@@ -1,20 +1,20 @@
 {
     "info": {
-        "date": "2021-02-21",
-        "fails": 5
+        "date": "2021-02-22",
+        "fails": 1
     },
     "tasks": [
         {
             "infos": {
                 "id": 0,
-                "title": "30uw",
+                "title": "bopyxnob voc qbkzrsaeoc no moddo kzzvsmkdsyx",
                 "content": "",
-                "category": "czybd",
+                "category": "zbyqbkwwkdsyx",
                 "repetition": false,
-                "allow_browser": false
+                "allow_browser": true
             },
             "stats": {
-                "done": true,
+                "done": false,
                 "minutes": 0,
                 "streaks": 0
             }
@@ -22,141 +22,6 @@
         {
             "infos": {
                 "id": 1,
-                "title": "lkcmevob ceb ziad",
-                "content": "",
-                "category": "zbyqbkwwkdsyx",
-                "repetition": false,
-                "allow_browser": true
-            },
-            "stats": {
-                "done": false,
-                "minutes": 0,
-                "streaks": 0
-            }
-        },
-        {
-            "infos": {
-                "id": 2,
-                "title": "myebc",
-                "content": "",
-                "category": "wkdr\u00e9wkdsaeoc",
-                "repetition": true,
-                "allow_browser": false
-            },
-            "stats": {
-                "done": false,
-                "minutes": 0,
-                "streaks": 5
-            }
-        },
-        {
-            "infos": {
-                "id": 3,
-                "title": "10 zywzoc ke b\u00e9fosv",
-                "content": "",
-                "category": "czybd",
-                "repetition": true,
-                "allow_browser": false
-            },
-            "stats": {
-                "done": true,
-                "minutes": 0,
-                "streaks": 16
-            }
-        },
-        {
-            "infos": {
-                "id": 4,
-                "title": "nyemro pbysno",
-                "content": "",
-                "category": "kedboc",
-                "repetition": true,
-                "allow_browser": false
-            },
-            "stats": {
-                "done": true,
-                "minutes": 0,
-                "streaks": 15
-            }
-        },
-        {
-            "infos": {
-                "id": 5,
-                "title": "bkxqob voc poesvvoc fyvkxdoc",
-                "content": "",
-                "category": "kedboc",
-                "repetition": true,
-                "allow_browser": false
-            },
-            "stats": {
-                "done": false,
-                "minutes": 0,
-                "streaks": 5
-            }
-        },
-        {
-            "infos": {
-                "id": 6,
-                "title": "swzvowoxd mdbv+k",
-                "content": "",
-                "category": "zbyqbkwwkdsyx",
-                "repetition": false,
-                "allow_browser": false
-            },
-            "stats": {
-                "done": false,
-                "minutes": 0,
-                "streaks": 0
-            }
-        },
-        {
-            "infos": {
-                "id": 7,
-                "title": "boqkbnob lsdmysx",
-                "content": "",
-                "category": "kedboc",
-                "repetition": false,
-                "allow_browser": true
-            },
-            "stats": {
-                "done": false,
-                "minutes": 0,
-                "streaks": 0
-            }
-        },
-        {
-            "infos": {
-                "id": 8,
-                "title": "ybqkxscob voc wydc no zkcco",
-                "content": "",
-                "category": "zbyqbkwwkdsyx",
-                "repetition": false,
-                "allow_browser": true
-            },
-            "stats": {
-                "done": false,
-                "minutes": 0,
-                "streaks": 0
-            }
-        },
-        {
-            "infos": {
-                "id": 9,
-                "title": "NW",
-                "content": "",
-                "category": "wkdr\u00e9wkdsaeoc",
-                "repetition": false,
-                "allow_browser": false
-            },
-            "stats": {
-                "done": false,
-                "minutes": 0,
-                "streaks": 0
-            }
-        },
-        {
-            "infos": {
-                "id": 10,
                 "title": "NW",
                 "content": "",
                 "category": "zricsaeo-mrswso",
@@ -171,8 +36,128 @@
         },
         {
             "infos": {
-                "id": 11,
-                "title": "bopyxnob voc qbkzrsaeoc no moddo kzzvsmkdsyx",
+                "id": 2,
+                "title": "NW",
+                "content": "",
+                "category": "wkdr\u00e9wkdsaeoc",
+                "repetition": false,
+                "allow_browser": false
+            },
+            "stats": {
+                "done": false,
+                "minutes": 0,
+                "streaks": 0
+            }
+        },
+        {
+            "infos": {
+                "id": 3,
+                "title": "ybqkxscob voc wydc no zkcco",
+                "content": "",
+                "category": "zbyqbkwwkdsyx",
+                "repetition": false,
+                "allow_browser": true
+            },
+            "stats": {
+                "done": false,
+                "minutes": 0,
+                "streaks": 0
+            }
+        },
+        {
+            "infos": {
+                "id": 4,
+                "title": "boqkbnob lsdmysx",
+                "content": "",
+                "category": "kedboc",
+                "repetition": false,
+                "allow_browser": true
+            },
+            "stats": {
+                "done": false,
+                "minutes": 79,
+                "streaks": 0
+            }
+        },
+        {
+            "infos": {
+                "id": 5,
+                "title": "swzvowoxd mdbv+k",
+                "content": "",
+                "category": "zbyqbkwwkdsyx",
+                "repetition": false,
+                "allow_browser": false
+            },
+            "stats": {
+                "done": false,
+                "minutes": 0,
+                "streaks": 0
+            }
+        },
+        {
+            "infos": {
+                "id": 6,
+                "title": "bkxqob voc poesvvoc fyvkxdoc",
+                "content": "",
+                "category": "kedboc",
+                "repetition": true,
+                "allow_browser": false
+            },
+            "stats": {
+                "done": false,
+                "minutes": 0,
+                "streaks": 0
+            }
+        },
+        {
+            "infos": {
+                "id": 7,
+                "title": "nyemro pbysno",
+                "content": "",
+                "category": "kedboc",
+                "repetition": true,
+                "allow_browser": false
+            },
+            "stats": {
+                "done": true,
+                "minutes": 0,
+                "streaks": 16
+            }
+        },
+        {
+            "infos": {
+                "id": 8,
+                "title": "10 zywzoc ke b\u00e9fosv",
+                "content": "",
+                "category": "czybd",
+                "repetition": true,
+                "allow_browser": false
+            },
+            "stats": {
+                "done": true,
+                "minutes": 0,
+                "streaks": 17
+            }
+        },
+        {
+            "infos": {
+                "id": 9,
+                "title": "myebc",
+                "content": "",
+                "category": "wkdr\u00e9wkdsaeoc",
+                "repetition": true,
+                "allow_browser": false
+            },
+            "stats": {
+                "done": false,
+                "minutes": 0,
+                "streaks": 0
+            }
+        },
+        {
+            "infos": {
+                "id": 10,
+                "title": "lkcmevob ceb ziad",
                 "content": "",
                 "category": "zbyqbkwwkdsyx",
                 "repetition": false,
