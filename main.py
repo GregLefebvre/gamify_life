@@ -151,6 +151,7 @@ class SampleApp(tk.Tk):
         self.rank_font = tkfont.Font(family='Arial', size=10, weight="bold")
         self.duration_font = tkfont.Font(family='Arial', size=18)
         self.citation_font = tkfont.Font(family='Arial', size=18, weight="bold")
+        self.bold_button_font = tkfont.Font(family='Arial', size=10, weight="bold")
 
         l1 = str(int(pyautogui.size()[1]*0.8))
         l0 = str(int(pyautogui.size()[0]*0.6))
@@ -191,8 +192,19 @@ class SampleApp(tk.Tk):
             if " " in site:
                 for sep in separators:
                     self.forbidden_websites.append(site.replace(" ", sep))
+        #authorize whitelist
+        with open("settings/whitelist.json", 'r') as f:
+            self.whitelist_websites = json.load(f)["sites"]
+        for i in range(len(self.whitelist_websites)):
+            self.whitelist_websites[i] = decode_cesar(self.whitelist_websites[i], 10)
+
         self.active_win_title, self.active_win_data = get_active_window()
-        self.execute_task()
+
+        self.main_timer_mode = "work"
+        self.main_timer_seconds = 0
+        self.max_break_time = 20#minutes
+        self.max_work_break_ratio = 1
+        self.clock_based_actions()
 
     def _on_mousewheel(self, event):
         x = self.winfo_pointerx()
@@ -238,7 +250,7 @@ class SampleApp(tk.Tk):
             new_id = 0
         return new_id
 
-    def save_task(self, title, content, category, date, repetition, allow_browser, streaks, rank, task_update_id):
+    def save_task(self, title, content, category, date, repetition, allow_browser, streaks, rank, task_update_id, task_already_done_time=0):
         allow_browser = bool(allow_browser)
         file_days = os.listdir("json_days")
         if date == "tomorrow":
@@ -262,7 +274,7 @@ class SampleApp(tk.Tk):
             },
             'stats': {
                 'done': False,
-                'minutes': 0,
+                'minutes': task_already_done_time,
                 'streaks': streaks,
                 'rank': rank
             }
@@ -317,17 +329,26 @@ class SampleApp(tk.Tk):
         with open(file_path, 'w+') as outfile:
             json.dump(data, outfile, indent=4)
 
-    def action_app_based(self, active_win_name, active_win_data, allow_browser, allow_forbidden):
+    def active_window_regulation(self, active_win_name, active_win_data, allow_browser, allow_forbidden):
         active_win_without_title = remove_substr_from_str(active_win_name, active_win_data)
         if active_win_name in ["Google Chrome", "Mozilla Firefox", "Microsoft​ Edge"]:
             if allow_browser:
                 if not allow_forbidden:
+                    is_forbidden = False
+                    is_authorize = False
                     for site in self.forbidden_websites:
                         if site in active_win_without_title.lower():
-                            pyautogui.keyDown('ctrlleft')
-                            pyautogui.press('w')
-                            pyautogui.keyUp('ctrlleft')
-                            self.add_a_fail()
+                            is_forbidden = True
+                    if is_forbidden:
+                        for site in self.whitelist_websites:
+                            if site in active_win_without_title.lower():
+                                is_authorize = True
+                    if is_forbidden and (not is_authorize):
+                        print(active_win_without_title.lower())
+                        pyautogui.keyDown('ctrlleft')
+                        pyautogui.press('w')
+                        pyautogui.keyUp('ctrlleft')
+                        self.add_a_fail()
             else:
                 pyautogui.keyDown('ctrlleft')
                 pyautogui.keyDown('shiftleft')
@@ -336,20 +357,42 @@ class SampleApp(tk.Tk):
                 pyautogui.keyUp('ctrlleft')
                 self.add_a_fail()
 
+    def reset_all_timers(self):
+        self.main_timer_mode = "work"
+        self.main_timer_seconds = 0
+        self.main_timer_seconds_b = 0
+        self.frames["DailyPage"].init_main_pom()
+        self.frames["TaskPage"].init_main_pom()
 
-    def execute_task(self):
+    def clock_based_actions(self):
+        #main_timer
+        if self.main_timer_seconds > 0:
+            self.main_timer_seconds -= 1
+            self.frames["DailyPage"].reload_pomodoro_running(self.main_timer_seconds, self.main_timer_mode)
+            self.frames["TaskPage"].reload_pomodoro_running(self.main_timer_seconds, self.main_timer_mode)
+        #task_timer
+        if self.current_frame == "TaskPage":
+            self.frames["TaskPage"].update_duration()
+        else:
+            self.frames["TaskPage"].duration_string.set("0")
+        #new_day script
         if self.today != str(datetime.date.today()):
             self.frames["DailyPage"].transfer_tasks()
             self.frames["DailyPage"].reload_tasks()
             self.today = str(datetime.date.today())
+        #applications actions
+        self.applications_based_actions()
+        #recursive call
+        self.after(1000, self.clock_based_actions)
+
+    def applications_based_actions(self):
         # if self.frames["TaskPage"].pom_status != "break":
         date_of_the_week = datetime.datetime.now().strftime("%A").lower()
         active_win_title, active_win_data = get_active_window()
-        if (active_win_data != self.active_win_data) and (date_of_the_week not in ["saturday"]) and (self.current_frame != "BreakPage"):
+        if (active_win_data != self.active_win_data) and (date_of_the_week not in ["saturday"]) and (self.current_frame != "BreakPage") and (self.main_timer_mode != "break"):
             self.active_win_data = active_win_data
-            self.action_app_based(active_win_title, active_win_data, self.frames["TaskPage"].allow_browser, False)
+            self.active_window_regulation(active_win_title, active_win_data, self.frames["TaskPage"].allow_browser, False)
             # if self.current_frame != "BreakPage":
-        self.after(2000, self.execute_task)
 
 
 class DailyPage(tk.Frame):
@@ -360,111 +403,67 @@ class DailyPage(tk.Frame):
 
         self.dict_tasks_frames = {"to_do": list(), "done": list()}
 
-        #left and right frames
-        # self.columnconfigure(0, weight=1, minsize=100)
-        self.columnconfigure(1, weight=10)
+        #top and bottom frames
+        self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
-        self.frame_left = tk.Frame(self,relief=tk.SOLID,borderwidth=1)
-        self.frame_right = tk.Frame(self,relief=tk.SOLID,borderwidth=0)
-        # self.frame_left.grid(row=0, column=0, sticky="nsew")
-        self.frame_right.grid(row=0, column=1, sticky="nsew")
+        self.rowconfigure(1, weight=10)
+        self.frame_top = tk.Frame(self,relief=tk.SOLID,borderwidth=0)
+        self.frame_bottom = tk.Frame(self,relief=tk.SOLID,borderwidth=0)
+        self.frame_top.grid(row=0, column=0, sticky="nsew")
+        self.frame_bottom.grid(row=1, column=0, sticky="nsew")
 
-        #inside of frame left
-        self.frame_left.columnconfigure(0, weight=1)
-        self.frame_left.rowconfigure(0, weight=1)
-        self.frame_left.rowconfigure(1, weight=1)
-        self.frame_left.rowconfigure(2, weight=1)
-        frame_left_coins = tk.Frame(self.frame_left,relief=tk.SOLID,borderwidth=1)
-        frame_left_duration = tk.Frame(self.frame_left,relief=tk.SOLID,borderwidth=1)
-        frame_left_streaks = tk.Frame(self.frame_left,relief=tk.SOLID,borderwidth=1)
-        frame_left_coins.grid(row=0, column=0, sticky="nsew")
-        frame_left_duration.grid(row=1, column=0, sticky="nsew")
-        frame_left_streaks.grid(row=2, column=0, sticky="nsew")
-
-        frame_left_coins.columnconfigure(0, weight=1)
-        frame_left_coins.rowconfigure(0, weight=1)
-        btn_stats = tk.Button(frame_left_coins, text="stats",
-                        command=lambda: self.view_stats())
-        btn_stats.grid(sticky="", row=0,column=0)
-
-        frame_left_duration.columnconfigure(0, weight=1)
-        frame_left_duration.rowconfigure(0, weight=1)
-        btn_reload = tk.Button(frame_left_duration, text="reload",
-                        command=lambda: self.reload_tasks())
-        btn_reload.grid(sticky="", row=0,column=0)
-
-        frame_left_streaks.columnconfigure(0, weight=1)
-        frame_left_streaks.rowconfigure(0, weight=1)
-        btn_break = tk.Button(frame_left_streaks, text="break",
-                        command=lambda: self.take_break())
-        btn_break.grid(sticky="", row=0,column=0)
-
-
-        # data1 = {'Country': ['US','CA','GER','UK','FR'],
-        #          'GDP_Per_Capita': [45000,42000,52000,49000,47000]
-        #         }
-        # df1 = DataFrame(data1,columns=['Country','GDP_Per_Capita'])
-        # figure1 = plt.Figure(figsize=(1,1), dpi=100)
-        # ax1 = figure1.add_subplot(111)
-        # bar1 = FigureCanvasTkAgg(figure1, self.frame_left)
-        # bar1.get_tk_widget().grid(row=0, column=0, sticky="nsew")
-        # df1 = df1[['Country','GDP_Per_Capita']].groupby('Country').sum()
-        # df1.plot(kind='bar', legend=True, ax=ax1)
-        # ax1.set_title('Country Vs. GDP Per Capita')
-
-        #inside of frame right
-        self.frame_right.columnconfigure(0, weight=1)
-        self.frame_right.rowconfigure(0, weight=1)
-        self.frame_right.rowconfigure(1, weight=8)
-        # self.frame_right.rowconfigure(2, weight=1)
-        frame_right_title = tk.Frame(self.frame_right,relief=tk.SOLID,borderwidth=0, bg="#ffffff")
-        frame_right_add = tk.Frame(self.frame_right,relief=tk.SOLID,borderwidth=1)
-        frame_right_title.grid(row=0, column=0, sticky="nsew")
-        frame_right_add.grid(row=2, column=0, sticky="nsew")
-
-        self.frame_right_tasks = tk.Frame(self.frame_right,relief=tk.SOLID,borderwidth=1)
-        self.frame_right_tasks.grid(row=1, column=0, sticky="nsew")
-        self.frame_right_tasks.rowconfigure(0, weight=1)
-        self.frame_right_tasks.columnconfigure(0, weight=3)
-        self.frame_right_tasks.columnconfigure(1, weight=1)
-
-        self.frame_right_tasks_to_do = tk.Frame(self.frame_right_tasks,relief=tk.SOLID,borderwidth=1, bg="#FDCE2A", padx=10, pady=10)
-        self.frame_right_tasks_done = tk.Frame(self.frame_right_tasks,relief=tk.SOLID,borderwidth=1, bg="#03C04A", padx=10, pady=10)
-        self.frame_right_tasks_to_do.grid(row=0, column=0, sticky="nsew")
-        self.frame_right_tasks_done.grid(row=0, column=1, sticky="nsew")
-        self.frame_right_tasks_to_do.rowconfigure(0, weight=1)
-        self.frame_right_tasks_to_do.rowconfigure(1, weight=10)
-        self.frame_right_tasks_to_do.columnconfigure(0, weight=1)
-        self.frame_right_tasks_done.rowconfigure(0, weight=1)
-        self.frame_right_tasks_done.rowconfigure(1, weight=10)
-        self.frame_right_tasks_done.columnconfigure(0, weight=1)
-
-        #inside of frame_right_title
-        frame_right_title.columnconfigure(0, weight=1)
-        frame_right_title.rowconfigure(0, weight=1)
+        #inside of frame_top
+        self.frame_top.columnconfigure(0, weight=1)
+        self.frame_top.rowconfigure(0, weight=1)
         self.date_string = tk.StringVar()
         self.date_string.set("test")
-        label_title = tk.Label(frame_right_title, textvariable=self.date_string,
+        label_title = tk.Label(self.frame_top, textvariable=self.date_string,
                                 font=controller.normal_font, bg="#ffffff")
         label_title.grid(sticky="nsew")
+
+        #inside of frame_bottom
+        self.frame_bottom.columnconfigure([0, 1], weight=1)
+        self.frame_bottom.rowconfigure(0, weight=1)
+        self.frame_bottom_left = tk.Frame(self.frame_bottom)
+        self.frame_bottom_left.grid(row=0, column=0, sticky="nsew")
+        self.frame_bottom_right = tk.Frame(self.frame_bottom)
+        self.frame_bottom_right.grid(row=0, column=1, sticky="nsew")
+
+        #inside of frame_bottom_left
+        self.frame_bottom_left.columnconfigure(0, weight=1)
+        self.frame_bottom_left.rowconfigure(0, weight=1)
+
+        self.frame_tasks_to_do = tk.Frame(self.frame_bottom_left,relief=tk.SOLID,borderwidth=1, bg="#FDCE2A", padx=10, pady=10)
+        self.frame_tasks_to_do.grid(row=0, column=0, sticky="nsew")
+        self.frame_tasks_to_do.rowconfigure(0, weight=1, minsize=50)
+        self.frame_tasks_to_do.rowconfigure(1, weight=10)
+        self.frame_tasks_to_do.columnconfigure(0, weight=1)
+
+        #inside of frame_bottom_right
+        self.frame_bottom_right.columnconfigure(0, weight=1)
+        self.frame_bottom_right.rowconfigure([0, 1], weight=1)
+        #pom
+        self.frame_pomodoro = tk.Frame(self.frame_bottom_right,relief=tk.SOLID,borderwidth=1, bg="#DEDEDE", padx=10, pady=10)
+        self.frame_pomodoro.grid(row=0, column=0, sticky="nsew")
+        self.frame_pomodoro.rowconfigure(0, weight=1, minsize=50)
+        self.frame_pomodoro.rowconfigure(1, weight=10)
+        self.frame_pomodoro.columnconfigure(0, weight=1)
+        label_cat1 = tk.Label(self.frame_pomodoro, text="Pomodoro".upper(), font=self.controller.subtitle_font, bg="#DEDEDE",relief=tk.SOLID, borderwidth=2)
+        label_cat1.grid(row=0, column=0, sticky="nsew")
+        self.frame_pomodoro_in = ScrollableFrame(self.frame_pomodoro, bg1="#DEDEDE")
+        self.frame_pomodoro_in.grid(row=1, column=0, sticky="nsew")
+        self.init_main_pom()
+        #done
+        self.frame_tasks_done = tk.Frame(self.frame_bottom_right,relief=tk.SOLID,borderwidth=1, bg="#03C04A", padx=10, pady=10)
+        self.frame_tasks_done.grid(row=1, column=0, sticky="nsew")
+        self.frame_tasks_done.rowconfigure(0, weight=1, minsize=50)
+        self.frame_tasks_done.rowconfigure(1, weight=10)
+        self.frame_tasks_done.columnconfigure(0, weight=1)
 
         self.daily_tasks = get_daily_tasks()
         if len(self.daily_tasks) == 0:
             self.get_older_tasks()
-        #inside of frame_right_tasks
         self.reload_tasks()
-
-        # #inside of frame_right_add
-        # frame_right_add.columnconfigure([0], weight=1)
-        # frame_right_add.rowconfigure(0, weight=1)
-        # string="Click to add a task [Ctrl+A]"
-        # btn2 = tk.Button(frame_right_add, text=string, bg="grey",
-        #                 command=self.show_addtask_page)
-        # btn2.grid(sticky="", row=0,column=0)
-        # # string="Click to take a break"
-        # # btn3 = tk.Button(frame_right_add, text=string,
-        # #                 command=lambda: controller.show_frame("BreakPage"))
-        # # btn3.grid(sticky="nsew", row=0, column=0)
 
     def show_stats_time(self):
         self.controller.show_frame("StatsPage")
@@ -496,7 +495,7 @@ class DailyPage(tk.Frame):
 
         menu_break = tk.Menu(menuBar, tearoff=0)
         menu_break.add_command(label="Take a break", command=self.take_break)
-        menuBar.add_cascade(label="Break", menu=menu_break)
+        # menuBar.add_cascade(label="Break", menu=menu_break)
 
         self.controller.config(menu = menuBar)
 
@@ -551,7 +550,7 @@ class DailyPage(tk.Frame):
                         streaks = task["stats"]["streaks"]
                     else:
                         streaks = 0
-                    self.controller.save_task(decode_cesar(task["infos"]["title"], 10), decode_cesar(task["infos"]["content"], 10), decode_cesar(task["infos"]["category"], 10), "today", task["infos"]["repetition"], allow_browser, streaks, task["stats"]["rank"], -1)
+                    self.controller.save_task(decode_cesar(task["infos"]["title"], 10), decode_cesar(task["infos"]["content"], 10), decode_cesar(task["infos"]["category"], 10), "today", task["infos"]["repetition"], allow_browser, streaks, task["stats"]["rank"], -1, 0)
 
     def transfer_tasks(self):
         for i in range(len(self.daily_tasks)):
@@ -565,13 +564,13 @@ class DailyPage(tk.Frame):
                     streaks = task["stats"]["streaks"]
                 else:
                     streaks = 0
-                self.controller.save_task(decode_cesar(task["infos"]["title"], 10), decode_cesar(task["infos"]["content"], 10), decode_cesar(task["infos"]["category"], 10), "today", task["infos"]["repetition"], allow_browser, streaks, task["stats"]["rank"], -1)
+                self.controller.save_task(decode_cesar(task["infos"]["title"], 10), decode_cesar(task["infos"]["content"], 10), decode_cesar(task["infos"]["category"], 10), "today", task["infos"]["repetition"], allow_browser, streaks, task["stats"]["rank"], -1, 0)
 
-    def destroy_previous_scroll(self):
-        children = self.frame_right_tasks_to_do.winfo_children()
+    def destroy_previous_scroll_tasks(self):
+        children = self.frame_tasks_to_do.winfo_children()
         for wid in children:
             wid.destroy()
-        children = self.frame_right_tasks_done.winfo_children()
+        children = self.frame_tasks_done.winfo_children()
         for wid in children:
             wid.destroy()
 
@@ -726,6 +725,74 @@ class DailyPage(tk.Frame):
                     sorted_tasks.append(tasks[j])
         return sorted_tasks
 
+    def number_validation_callback(self, P):
+        return (str.isdigit(P) or P == "")
+
+    def init_main_pom(self):
+        self.controller.main_timer_mode = "work"
+        self.controller.main_timer_seconds = 0
+        children = self.frame_pomodoro_in.scrollable_frame.winfo_children()
+        for wid in children:
+            wid.destroy()
+        form = tk.Frame(self.frame_pomodoro_in.scrollable_frame)
+        form.grid(sticky="nsew")
+        form.rowconfigure([0, 2], weight=1)
+        form.columnconfigure([0, 1], weight=1)
+        vcmd = (self.register(self.number_validation_callback))
+        lab1 = tk.Label(form, text="choose number of minutes to work", font=self.controller.normal_font)
+        lab1.grid(row=0, column=0, sticky="nsew")
+        self.input_time = tk.Entry(form, validate='all', validatecommand=(vcmd, '%P'))
+        self.input_time.grid(row=0, column=1)
+        self.input_time.insert(0, "120")
+        lab1 = tk.Label(form, text="choose number of minutes to relax", font=self.controller.normal_font)
+        lab1.grid(row=1, column=0, sticky="nsew")
+        self.input_time_b = tk.Entry(form, validate='all', validatecommand=(vcmd, '%P'))
+        self.input_time_b.grid(row=1, column=1)
+        self.input_time_b.insert(0, "5")
+        btn_begin_pom= tk.Button(form, text="start timer",
+                            command=self.start_main_pomodoro)
+        btn_begin_pom.grid(row=2, column=1)
+
+    def start_main_pomodoro(self):
+        self.controller.main_timer_mode = "work"
+        self.controller.main_timer_seconds = int(self.input_time.get())*60
+        self.controller.main_timer_seconds_b = min([self.controller.max_break_time*60, int(self.input_time_b.get())*60, int(self.input_time.get())*60*self.controller.max_work_break_ratio])
+        children = self.frame_pomodoro_in.scrollable_frame.winfo_children()
+        for wid in children:
+            wid.destroy()
+
+    def reload_pomodoro_running(self, seconds, mode):
+        children = self.frame_pomodoro_in.scrollable_frame.winfo_children()
+        for wid in children:
+            wid.destroy()
+        timer_frame = tk.Frame(self.frame_pomodoro_in.scrollable_frame)
+        timer_frame.grid(sticky="nsew")
+        timer_frame.rowconfigure([0, 2], weight=1)
+        timer_frame.rowconfigure(1, weight=3)
+        timer_frame.columnconfigure(0, weight=1)
+        lab1 = tk.Label(timer_frame, text="time remaining", font=self.controller.normal_font)
+        lab1.grid(row=0, column=0, sticky="nsew")
+        h=seconds//3600
+        m=(seconds%3600)//60
+        s=(seconds%3600)%60
+        str_time = mode.upper()+" "+two_digits_number(h)+":"+two_digits_number(m)+":"+two_digits_number(s)
+        lab2 = tk.Label(timer_frame, text=str_time, font=self.controller.duration_font)
+        lab2.grid(row=1, column=0, sticky="nsew")
+        btn_end_pom= tk.Button(timer_frame, text="end timer",
+                            command=self.controller.reset_all_timers)
+        btn_end_pom.grid(row=2, column=0)
+        #reset the timer if ended
+        if seconds == 0:
+            pygame.mixer.music.load("404359__kagateni__success2.wav")
+            pygame.mixer.music.play()
+            if self.controller.main_timer_mode == "work":
+                #on passe à la pause
+                self.controller.main_timer_mode = "break"
+                self.controller.main_timer_seconds = self.controller.main_timer_seconds_b
+            else:
+                #on arrete tout
+                self.after(2000, self.controller.reset_all_timers)
+
     def reload_tasks(self, ev=None):
         self.reorder_rank()
 
@@ -733,9 +800,9 @@ class DailyPage(tk.Frame):
 
         full_date = ""+datetime.datetime.now().strftime("%A %d %B %Y")
         self.date_string.set(full_date)
-        self.destroy_previous_scroll()
+        self.destroy_previous_scroll_tasks()
         #sep
-        frame_to_do_title = tk.Frame(self.frame_right_tasks_to_do,relief=tk.SOLID, borderwidth=2, bg="#FDCE2A")
+        frame_to_do_title = tk.Frame(self.frame_tasks_to_do,relief=tk.SOLID, borderwidth=2, bg="#FDCE2A")
         frame_to_do_title.grid(row=0, column=0, sticky="nsew")
         frame_to_do_title.grid_rowconfigure(0, weight=1)
         frame_to_do_title.grid_columnconfigure([0,1], weight=1)
@@ -744,18 +811,18 @@ class DailyPage(tk.Frame):
                             command=self.show_addtask_page)
         btn_add.grid(row=0, column=1, sticky="")
         label_cat.grid(row=0, column=0, sticky="nsew")
-        label_cat2 = tk.Label(self.frame_right_tasks_done, text="DONE", font=self.controller.subtitle_font, bg="#03C04A",relief=tk.SOLID, borderwidth=2)
+        label_cat2 = tk.Label(self.frame_tasks_done, text="DONE", font=self.controller.subtitle_font, bg="#03C04A",relief=tk.SOLID, borderwidth=2)
         label_cat2.grid(row=0, column=0, sticky="nsew")
         self.daily_tasks = get_daily_tasks()
         self.daily_tasks.reverse()
 
         if len(self.daily_tasks) == 0:
-            label_task = tk.Label(self.frame_right_tasks_to_do, text="no tasks for today")
+            label_task = tk.Label(self.frame_tasks_to_do, text="no tasks for today")
             label_task.grid(row=0, column=0, sticky="nsew")
         else:
-            self.scroll_tasks_done = ScrollableFrame(self.frame_right_tasks_done, bg1="#03C04A")
+            self.scroll_tasks_done = ScrollableFrame(self.frame_tasks_done, bg1="#03C04A")
             self.scroll_tasks_done.grid(row=1, column=0, sticky="nsew")
-            self.scroll_tasks_to_do = ScrollableFrame(self.frame_right_tasks_to_do, bg1="#FDCE2A")
+            self.scroll_tasks_to_do = ScrollableFrame(self.frame_tasks_to_do, bg1="#FDCE2A")
             self.scroll_tasks_to_do.grid(row=1, column=0, sticky="nsew")
             tasks_by_categories = {
                 "to_do": list(),
@@ -866,7 +933,7 @@ class DailyPage(tk.Frame):
 
                 btn_task= tk.Button(frame_btns_right, text=btn_text,
                                     command=lambda t=t: self.view_task(t),
-                                    padx=5, pady=0)
+                                    padx=5, pady=0, font=self.controller.bold_button_font)
                 btn_task.grid(row=0, column=0)
                 btn_edit= tk.Button(frame_btns_right, text="edit",
                                     command=lambda t=t: self.open_edit_task(t),
@@ -896,36 +963,6 @@ class DailyPage(tk.Frame):
                 j+=1
 
                 # self.dict_tasks_frames["to_do"].append(frame_task)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
             for cat in tasks_by_categories["done"]:
@@ -959,11 +996,9 @@ class DailyPage(tk.Frame):
                         frame_task.columnconfigure(0, weight=3)
                         frame_task.columnconfigure(1, weight=1)
                     substr = ""
-                    btn_text = "start"
                     if int(t["stats"]["minutes"]) > 0:
                         time_spent = readable_times(0, int(t["stats"]["minutes"]), 0)
                         substr+=" ("+time_spent+")"
-                        btn_text = "pursue"
                     string = decode_cesar(t["infos"]["title"], 10).upper()+substr
                     label_task = tk.Label(frame_task, text=string, bg="#FFFFFF")
                     label_task.grid(row=0, column=0+offset, sticky="nsw")
@@ -1013,17 +1048,26 @@ class TaskPage(tk.Frame):
 
         #inside frame_center
         self.frame_center.rowconfigure(0, weight=1)
-        self.frame_center.columnconfigure(0, weight=1)
-        self.frame_center.columnconfigure(1, weight=1)
-
+        self.frame_center.columnconfigure([0, 1], weight=1)
         self.frame_c_left = tk.Frame(self.frame_center,relief=tk.SOLID,borderwidth=1)
-        self.frame_c_right = tk.Frame(self.frame_center,relief=tk.SOLID,borderwidth=1, bg="#FFFFFF")
         self.frame_c_left.grid(row=0, column=0,sticky="nsew")
-        self.frame_c_right.grid(row=0, column=1,sticky="nsew")
         self.frame_c_left.rowconfigure([0,1], weight=1)
         self.frame_c_left.columnconfigure(0, weight=1)
-        self.frame_c_right.rowconfigure([0,3], weight=1)
-        self.frame_c_right.columnconfigure(0, weight=1)
+        # self.frame_c_right = tk.Frame(self.frame_center,relief=tk.SOLID,borderwidth=1, bg="#FFFFFF")
+        # self.frame_c_right.grid(row=0, column=1,sticky="nsew")
+        # self.frame_c_right.rowconfigure(0, weight=1)
+        # self.frame_c_right.columnconfigure(0, weight=1)
+
+        self.frame_pomodoro = tk.Frame(self.frame_center,relief=tk.SOLID,borderwidth=1, bg="#DEDEDE", padx=10, pady=10)
+        self.frame_pomodoro.grid(row=0, column=1, sticky="nsew")
+        self.frame_pomodoro.rowconfigure(0, weight=1, minsize=50)
+        self.frame_pomodoro.rowconfigure(1, weight=10)
+        self.frame_pomodoro.columnconfigure(0, weight=1)
+        label_cat1 = tk.Label(self.frame_pomodoro, text="Pomodoro".upper(), font=self.controller.subtitle_font, bg="#DEDEDE",relief=tk.SOLID, borderwidth=2)
+        label_cat1.grid(row=0, column=0, sticky="nsew")
+        self.frame_pomodoro_in = ScrollableFrame(self.frame_pomodoro, bg1="#DEDEDE")
+        self.frame_pomodoro_in.grid(row=1, column=0, sticky="nsew")
+        self.init_main_pom()
 
         string = "total time spent today: "
         center_label = tk.Label(self.frame_c_left, text=string, font=self.controller.duration_font)
@@ -1036,23 +1080,23 @@ class TaskPage(tk.Frame):
         self.duration_label = tk.Label(self.frame_c_left, textvariable=self.duration_string, font=self.controller.duration_font)
         self.duration_label.grid(row=1, column=0,sticky="nsew")
 
-        string = "Pomodoro"
-        pom_label = tk.Label(self.frame_c_right, text=string, font=self.controller.title_font)
-        pom_label.grid(row=0, column=0)
-        self.pom_btn_string = tk.StringVar()
-        self.pom_btn_col = tk.StringVar()
-        self.pom_btn_string.set("click to start")
-        self.btn_pom = tk.Button(self.frame_c_right, textvariable=self.pom_btn_string, bg="#03C04A",
-                           command=lambda: self.pom_action())
-        self.btn_pom.grid(row=1, column=0)
-        self.status_pom_string = tk.StringVar()
-        self.status_pom_string.set("")
-        self.status_pom_label = tk.Label(self.frame_c_right, textvariable=self.status_pom_string, font=self.controller.duration_font)
-        self.status_pom_label.grid(row=2, column=0)
-        self.duration_pom_string = tk.StringVar()
-        self.duration_pom_string.set("")
-        self.duration_pom_label = tk.Label(self.frame_c_right, textvariable=self.duration_pom_string, font=self.controller.duration_font)
-        self.duration_pom_label.grid(row=3, column=0)
+        # string = "Pomodoro"
+        # pom_label = tk.Label(self.frame_c_right, text=string, font=self.controller.title_font)
+        # pom_label.grid(row=0, column=0)
+        # self.pom_btn_string = tk.StringVar()
+        # self.pom_btn_col = tk.StringVar()
+        # self.pom_btn_string.set("click to start")
+        # self.btn_pom = tk.Button(self.frame_c_right, textvariable=self.pom_btn_string, bg="#03C04A",
+        #                    command=lambda: self.pom_action())
+        # self.btn_pom.grid(row=1, column=0)
+        # self.status_pom_string = tk.StringVar()
+        # self.status_pom_string.set("")
+        # self.status_pom_label = tk.Label(self.frame_c_right, textvariable=self.status_pom_string, font=self.controller.duration_font)
+        # self.status_pom_label.grid(row=2, column=0)
+        # self.duration_pom_string = tk.StringVar()
+        # self.duration_pom_string.set("")
+        # self.duration_pom_label = tk.Label(self.frame_c_right, textvariable=self.duration_pom_string, font=self.controller.duration_font)
+        # self.duration_pom_label.grid(row=3, column=0)
 
         #inside frame_bottom
         self.frame_bottom.rowconfigure(0, weight=1)
@@ -1066,6 +1110,66 @@ class TaskPage(tk.Frame):
         btn_done = tk.Button(self.frame_bottom, text="Task is done -->", bg="#03C04A",
                            command=lambda: self.mark_task_done())
         btn_done.grid(row=0, column=2)
+
+    def number_validation_callback(self, P):
+        return (str.isdigit(P) or P == "")
+
+    def init_main_pom(self):
+        children = self.frame_pomodoro_in.scrollable_frame.winfo_children()
+        for wid in children:
+            wid.destroy()
+        form = tk.Frame(self.frame_pomodoro_in.scrollable_frame)
+        form.grid(sticky="nsew")
+        form.rowconfigure([0, 2], weight=1)
+        form.columnconfigure([0, 1], weight=1)
+        vcmd = (self.register(self.number_validation_callback))
+        lab1 = tk.Label(form, text="choose number of minutes to work", font=self.controller.normal_font)
+        lab1.grid(row=0, column=0, sticky="nsew")
+        self.input_time = tk.Entry(form, validate='all', validatecommand=(vcmd, '%P'))
+        self.input_time.grid(row=0, column=1)
+        self.input_time.insert(0, "120")
+        lab1 = tk.Label(form, text="choose number of minutes to relax", font=self.controller.normal_font)
+        lab1.grid(row=1, column=0, sticky="nsew")
+        self.input_time_b = tk.Entry(form, validate='all', validatecommand=(vcmd, '%P'))
+        self.input_time_b.grid(row=1, column=1)
+        self.input_time_b.insert(0, "5")
+        btn_begin_pom= tk.Button(form, text="start timer",
+                            command=self.start_main_pomodoro)
+        btn_begin_pom.grid(row=2, column=1)
+
+    def start_main_pomodoro(self):
+        self.controller.main_timer_mode = "work"
+        self.controller.main_timer_seconds = int(self.input_time.get())*60
+        self.controller.main_timer_seconds_b = min([self.controller.max_break_time*60, int(self.input_time_b.get())*60, int(self.input_time.get())*60*self.controller.max_work_break_ratio])
+        children = self.frame_pomodoro_in.scrollable_frame.winfo_children()
+        for wid in children:
+            wid.destroy()
+
+    def reload_pomodoro_running(self, seconds, mode):
+        children = self.frame_pomodoro_in.scrollable_frame.winfo_children()
+        for wid in children:
+            wid.destroy()
+        timer_frame = tk.Frame(self.frame_pomodoro_in.scrollable_frame)
+        timer_frame.grid(sticky="nsew")
+        timer_frame.rowconfigure([0, 2], weight=1)
+        timer_frame.rowconfigure(1, weight=3)
+        timer_frame.columnconfigure(0, weight=1)
+        lab1 = tk.Label(timer_frame, text="time remaining", font=self.controller.normal_font)
+        lab1.grid(row=0, column=0, sticky="nsew")
+        h=seconds//3600
+        m=(seconds%3600)//60
+        s=(seconds%3600)%60
+        str_time = mode.upper()+" "+two_digits_number(h)+":"+two_digits_number(m)+":"+two_digits_number(s)
+        lab2 = tk.Label(timer_frame, text=str_time, font=self.controller.duration_font)
+        lab2.grid(row=1, column=0, sticky="nsew")
+        btn_end_pom= tk.Button(timer_frame, text="end timer",
+                            command=self.controller.reset_all_timers)
+        btn_end_pom.grid(row=2, column=0)
+
+
+
+
+
 
     def pom_action(self):
         self.pom_status = "work"
@@ -1110,6 +1214,10 @@ class TaskPage(tk.Frame):
             self.duration_pom_string.set("")
 
 
+
+
+
+
     def go_back(self):
         self.update_time_spent_task()
         self.controller.show_frame("DailyPage")
@@ -1150,11 +1258,11 @@ class TaskPage(tk.Frame):
         self.content = tk.Label(self.frame_title, text=decode_cesar(task["infos"]["content"], 10))
         self.content.grid(row=1, column=0,sticky="nsew")
         self.update_duration()
-        self.pom_btn_string.set("click to start")
-        self.btn_pom.configure(bg="#03C04A")
-        self.frame_c_right.configure(bg="#FFFFFF")
-        self.status_pom_string.set("")
-        self.duration_pom_string.set("")
+        # self.pom_btn_string.set("click to start")
+        # self.btn_pom.configure(bg="#03C04A")
+        # self.frame_c_right.configure(bg="#FFFFFF")
+        # self.status_pom_string.set("")
+        # self.duration_pom_string.set("")
         btn_end = tk.Button(self.frame_bottom, text="stop daily repetition/delete", command=lambda: self.remove_task())
         btn_end.grid(row=0, column=1)
         if "allow_browser" in task["infos"]:
@@ -1190,10 +1298,6 @@ class TaskPage(tk.Frame):
         hours_corrected = hours_stored + hours + (minutes + minutes_stored)//60
         string = two_digits_number(hours_corrected)+":"+two_digits_number(minutes_corrected)+":"+two_digits_number(seconds)
         self.duration_string.set(string)
-        if self.controller.current_frame == "TaskPage":
-            self.controller.after(1000, self.update_duration)
-        else:
-            self.duration_string.set("0")
 
     def mark_task_done(self):
         pygame.mixer.music.load("404358__kagateni__success-[AudioTrimmer.com].wav")
@@ -1216,8 +1320,6 @@ class TaskPage(tk.Frame):
             print("yesterday")
         self.update_time_spent_task()
         self.controller.show_frame("DailyPage")
-        # pygame.mixer.music.load("404359__kagateni__success2.wav")
-        # self.controller.after(1000, lambda: pygame.mixer.music.play())
 
 
 class BreakPage(tk.Frame):
@@ -1255,7 +1357,6 @@ class BreakPage(tk.Frame):
 
     def go_back(self):
         self.controller.show_frame("DailyPage")
-        self.controller.execute_task()
 
 
 class StatsPage(tk.Frame):
@@ -1435,7 +1536,6 @@ class StatsPage(tk.Frame):
 
     def go_back(self):
         self.controller.show_frame("DailyPage")
-        self.controller.execute_task()
 
 
 class AddTaskPage(tk.Frame):
@@ -1449,6 +1549,7 @@ class AddTaskPage(tk.Frame):
         self.task_update_id = -1
         self.task_update_rank = -1
         self.task_update_streaks = 0
+        self.task_update_time = 0
 
         self.frame_title = tk.Frame(self)
         self.frame_title.grid(row=0, column=0, sticky="nsew")
@@ -1545,6 +1646,7 @@ class AddTaskPage(tk.Frame):
         self.task_update_id = -1
         self.task_update_rank = -1
         self.task_update_streaks = 0
+        self.task_update_time = 0
         self.title_label.set("Create a task")
         self.e1.delete(0, tk.END)
         self.e2.delete(0, tk.END)
@@ -1559,6 +1661,7 @@ class AddTaskPage(tk.Frame):
         self.task_update_id = task["infos"]["id"]
         self.task_update_rank = task["stats"]["rank"]
         self.task_update_streaks = task["stats"]["streaks"]
+        self.task_update_time = task["stats"]["minutes"]
         self.e1.delete(0, tk.END)
         self.e2.delete(0, tk.END)
         self.e1.insert(0, decode_cesar(task["infos"]["title"], 10))
@@ -1597,9 +1700,9 @@ class AddTaskPage(tk.Frame):
                             pass
                     else:
                         t = title+" ["+subtasks[i]+"]"
-                        task = self.controller.save_task(t, content, category, date, repetition, allow_browser, self.task_update_streaks, self.task_update_rank, self.task_update_id)
+                        task = self.controller.save_task(t, content, category, date, repetition, allow_browser, self.task_update_streaks, self.task_update_rank, self.task_update_id, self.task_update_time)
             else:
-                task = self.controller.save_task(title, content, category, date, repetition, allow_browser, self.task_update_streaks, self.task_update_rank, self.task_update_id)
+                task = self.controller.save_task(title, content, category, date, repetition, allow_browser, self.task_update_streaks, self.task_update_rank, self.task_update_id, self.task_update_time)
             self.e1.delete(0, tk.END)
             self.e2.delete(0, tk.END)
             self.e7.delete(0, tk.END)

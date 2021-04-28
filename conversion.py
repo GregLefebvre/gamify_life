@@ -36,11 +36,11 @@ def decode_cesar(string, decalage):
 #         json.dump(data, outfile, indent=4)
 #
 #
-# file_path = "settings/"+"forbidden_websites.json"
+# file_path = "settings/"+"whitelist.json"
 # with open(file_path, 'r') as f:
 #     data = json.load(f)
 # sites = data["sites"]
 # for i in range(len(sites)):
-#     sites[i] = decode_cesar(sites[i], 10)
+#     sites[i] = encode_cesar(sites[i], 10)
 # with open(file_path, 'w+') as outfile:
 #     json.dump(data, outfile, indent=4)
